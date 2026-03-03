@@ -13,6 +13,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +33,7 @@ jobs:
           pyinstaller --onedir --name astronomy main.py
 
       - name: Archive build
+        shell: bash
         run: |
           mkdir release
           if [ "$RUNNER_OS" == "Windows" ]; then
