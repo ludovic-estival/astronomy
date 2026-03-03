@@ -59,17 +59,32 @@ class Eyepiece:
 
 def extract_json(json_file_path: Path) -> tuple[list[Telescope], list[Eyepiece]]:
     """Extracts telescopes and eyepieces from a JSON file."""
-    with open(json_file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open(json_file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError as e:
+        print(f"Unable to find {json_file_path}")
+        raise typer.Exit() from e
+    except json.JSONDecodeError as e:
+        print(f"{json_file_path} is not a JSON file")
+        raise typer.Exit() from e
 
     telescopes = []
     eyepieces = []
 
-    for t in data["telescopes"]:
-        telescopes.append(Telescope(t["name"], t["diameter"], t["focal"]))
+    try:
+        for t in data["telescopes"]:
+            telescopes.append(Telescope(t["name"], t["diameter"], t["focal"]))
+    except KeyError as e:
+        print("Missing telescopes key in JSON file")
+        raise typer.Exit() from e
 
-    for e in data["eyepieces"]:
-        eyepieces.append(Eyepiece(e["name"], e["focal"]))
+    try:
+        for e in data["eyepieces"]:
+            eyepieces.append(Eyepiece(e["name"], e["focal"]))
+    except KeyError as e:
+        print("Missing eyepieces key in JSON file")
+        raise typer.Exit() from e
 
     return (telescopes, eyepieces)
 
