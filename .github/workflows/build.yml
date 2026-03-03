@@ -5,17 +5,16 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-
     runs-on: ${{ matrix.os }}
-
-    permissions:
-      contents: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,22 +28,38 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build with PyInstaller
-        run: |
-          pyinstaller --onedir --name astronomy main.py
+        run: pyinstaller --onedir --name astronomy main.py
 
       - name: Archive build
         shell: bash
         run: |
-          mkdir release
+          mkdir -p dist_zip
           if [ "$RUNNER_OS" == "Windows" ]; then
-            powershell Compress-Archive dist/astronomy release/astronomy-${{ github.ref_name }}-windows.zip
+            powershell Compress-Archive dist/astronomy dist_zip/astronomy-${{ github.ref_name }}-windows.zip
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            zip -r release/astronomy-${{ github.ref_name }}-linux.zip dist/astronomy
+            zip -r dist_zip/astronomy-${{ github.ref_name }}-linux.zip dist/astronomy
           else
-            zip -r release/astronomy-${{ github.ref_name }}-macos.zip dist/astronomy
+            zip -r dist_zip/astronomy-${{ github.ref_name }}-macos.zip dist/astronomy
           fi
 
-      - name: Upload release
+      - name: Temporarily save artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.os }}
+          path: dist_zip/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all_releases
+          pattern: binary-*
+          merge-multiple: true
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*
+          files: all_releases/*
