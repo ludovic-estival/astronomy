@@ -1,7 +1,7 @@
 {
     "telescopes": [
         {
-            "name": "Newton sur Dobson",
+            "name": "Newton on Dobson mount",
             "diameter": 203,
             "focal": 1200
         },
@@ -11,7 +11,7 @@
             "focal": 1800
         }
     ],
-    "oculars": [
+    "eyepieces": [
         {"name": "Artesky Super ED 25mm", "focal": 25},
         {"name": "Artesky Super ED 8mm", "focal": 8},
         {"name": "Artesky Super ED 5mm", "focal": 5}
